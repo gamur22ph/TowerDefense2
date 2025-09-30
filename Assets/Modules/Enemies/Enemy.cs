@@ -13,6 +13,8 @@ public class Enemy : MonoBehaviour
     private Vector2 offset;
     private Rigidbody2D rb;
 
+    
+
     private void Awake()
     {
         currentMovementSpeed = baseMovementSpeed;
@@ -22,10 +24,10 @@ public class Enemy : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        Initialize();
+        
     }
 
-    public void Initialize()
+    public void Initialize(EnemyType enemyType = EnemyType.Basic)
     {
         SetFirstDirection();
     }
@@ -35,13 +37,23 @@ public class Enemy : MonoBehaviour
     {
         if (TargetReached())
         {
+            if (IsLastPath())
+            {
+                gameObject.SetActive(false);
+                PlayerManager.instance.ReduceLife();
+            }
             SetNextDirection();
+        }
+        else
+        {
+            float step = Mathf.Min(currentMovementSpeed * Time.deltaTime, GetTargetDistance());
+            transform.position += (Vector3)direction * step;
         }
     }
 
     public void FixedUpdate()
     {
-        rb.linearVelocity = direction * currentMovementSpeed * Time.fixedDeltaTime;
+        
     }
 
     public void SetFirstDirection()
@@ -61,8 +73,23 @@ public class Enemy : MonoBehaviour
         direction = (currentTargetPos - (Vector2)transform.position).normalized;
     }
 
+    public bool IsLastPath()
+    {
+        return currentPathIdx == PathManager.instance.Paths.Count - 1;
+    }
+
     public bool TargetReached()
     {
-        return (currentTargetPos - (Vector2)transform.position).sqrMagnitude < 0.05;
+        return (currentTargetPos - (Vector2)transform.position).sqrMagnitude < 0.01;
     }
+
+    public float GetTargetDistance()
+    {
+        return (currentTargetPos - (Vector2)transform.position).magnitude;
+    }
+}
+
+public enum EnemyType
+{
+    Basic,
 }
