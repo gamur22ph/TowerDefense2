@@ -1,7 +1,10 @@
+using System;
+using TMPro;
 using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    [SerializeField] TextMeshProUGUI progressCount;
     private Vector2 currentTargetPos;
     private Vector2 direction;
     private bool reversedPathing;
@@ -13,42 +16,53 @@ public class Enemy : MonoBehaviour
     private Vector2 offset;
     private Rigidbody2D rb;
 
-    
+    public Health Health { get; private set; }
+    private bool destroyed;
+
+    private float progress;
 
     private void Awake()
     {
         currentMovementSpeed = baseMovementSpeed;
         rb = GetComponent<Rigidbody2D>();
+        Health = GetComponent<Health>();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        Health.OnHealthChanged += OnHealthChanged;
+    }
+
+    private void OnDestroy()
+    {
+        Health.OnHealthChanged -= OnHealthChanged;
+    }
+
+    private void OnHealthChanged(float health)
+    {
+        if (destroyed) return;
+        if (health <= 0)
+        {
+            destroyed = true;
+            gameObject.SetActive(false);
+        }
     }
 
     public void Initialize(EnemyType enemyType = EnemyType.Basic)
     {
+        destroyed = false;
+        rb.position = transform.position;
+        Health.Init();
         SetFirstDirection();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (TargetReached())
-        {
-            if (IsLastPath())
-            {
-                gameObject.SetActive(false);
-                PlayerManager.instance.ReduceLife();
-            }
-            SetNextDirection();
-        }
-        else
-        {
-            float step = Mathf.Min(currentMovementSpeed * Time.deltaTime, GetTargetDistance());
-            transform.position += (Vector3)direction * step;
-        }
+        CheckPath();
+        float step = Mathf.Min(currentMovementSpeed * Time.deltaTime, GetTargetDistance());
+        transform.position += (Vector3)direction * step;
     }
 
     public void FixedUpdate()
@@ -64,13 +78,48 @@ public class Enemy : MonoBehaviour
         direction = (currentTargetPos - (Vector2)transform.position).normalized;
     }
 
-    public void SetNextDirection()
+    public void SetDirection()
     {
-        currentPathIdx = PathManager.instance.GetNextPathIdx(currentPathIdx);
+        //currentPathIdx = PathManager.instance.GetNextPathIdx(currentPathIdx);
         Vector2 currentPathPoint = PathManager.instance.Paths[currentPathIdx];
         offset = (Vector2)transform.position - currentPathPoint;
         currentTargetPos = currentPathPoint;
         direction = (currentTargetPos - (Vector2)transform.position).normalized;
+    }
+
+    public void CheckPath()
+    {
+        float currentPathDistance = PathManager.instance.PathsDistance[currentPathIdx - 1];
+        progress = currentPathDistance - GetTargetDistance();
+        progressCount.text = (PathManager.instance.PathLength - progress / PathManager.instance.PathLength).ToString("F0");
+        // Change Path
+        if (progress > currentPathDistance - 0.01f)
+        {
+            if (IsLastPath())
+            {
+                gameObject.SetActive(false);
+                PlayerManager.instance.ReduceLife();
+                return;
+            }
+            currentPathIdx++;
+            SetDirection();
+            return;
+        }
+
+        // Check Backlog path
+        if (currentPathIdx < 2) return; 
+        float progressDifference = currentPathDistance - progress;
+        float previousPathPoint = PathManager.instance.PathsDistance[currentPathIdx - 2];
+        if (progressDifference > currentPathDistance - previousPathPoint)
+        {
+            currentPathIdx--;
+            SetDirection();
+        }
+    }
+
+    public void CheckPathReverse()
+    {
+        // to be implemented, for knockbacks, or if the enemy gets displaced backward
     }
 
     public bool IsLastPath()
@@ -87,6 +136,7 @@ public class Enemy : MonoBehaviour
     {
         return (currentTargetPos - (Vector2)transform.position).magnitude;
     }
+
 }
 
 public enum EnemyType

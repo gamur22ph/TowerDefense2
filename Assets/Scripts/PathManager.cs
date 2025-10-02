@@ -7,17 +7,29 @@ public class PathManager : MonoBehaviour
 {
     public static PathManager instance { get; private set; }
     public List<Vector2> Paths { get; private set; }
+    public List<float> PathsDistance { get; private set; }
     private EdgeCollider2D pathCollider;
+
+    public float PathLength { get; private set; }
 
     private void Awake()
     {
         instance = this;
         pathCollider = GetComponent<EdgeCollider2D>();
         Paths = new List<Vector2>();
+        PathsDistance = new List<float>();
         for (int i = 0; i < transform.childCount; i++)
         {
             Paths.Add(transform.GetChild(i).position);
+            if (i > 0)
+            {
+                float distanceInBetween = (Paths[i] - Paths[i - 1]).magnitude;
+                Debug.Log("Distance of " + (i - 1) + " to " + i + " is " + distanceInBetween);
+                PathLength += distanceInBetween;
+                PathsDistance.Add(PathLength);
+            }
         }
+        Debug.Log("Distance Total: " + PathLength);
         pathCollider.SetPoints(Paths);
 
         for (int i = transform.childCount - 1; i >= 0; i--)

@@ -33,7 +33,6 @@ public class BuildManager : MonoBehaviour
     {
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         mousePos.z = 0;
-        Debug.Log(buildCursor == null);
         buildCursor.transform.position = mousePos;
 
         bool canBuild = buildCursor.CheckIfBuildable();
@@ -48,7 +47,7 @@ public class BuildManager : MonoBehaviour
             buildCursor.GetComponent<SpriteRenderer>().color = Color.red;
         }
 
-        if (InputManager.PlayerInput.actions.FindAction("Interact").WasPressedThisFrame())
+        if (InputManager.PlayerInput.actions.FindAction("Interact").IsPressed())
         {
             if (canBuild)
             {

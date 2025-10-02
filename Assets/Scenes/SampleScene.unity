@@ -2839,7 +2839,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31b4a625792dab049bab2665203ba0a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  testBuilding: {fileID: 7207899686586281634, guid: 4e6751050408eb542a14364f873de82d, type: 3}
+  testBuilding: {fileID: 7207899686586281634, guid: fef134922df29034c96e2138a356b041, type: 3}
   currentBuilding: {fileID: 0}
   buildCursor: {fileID: 209323404}
 --- !u!1 &1627251108
