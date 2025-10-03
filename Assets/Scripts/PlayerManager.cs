@@ -1,3 +1,6 @@
+using NUnit.Framework;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerManager : MonoBehaviour
@@ -9,6 +12,7 @@ public class PlayerManager : MonoBehaviour
 
     public static PlayerManager instance;
     [SerializeField] private int baseLives;
+    public List<Building> buildings;
 
     public int CurrentLives { get; private set; }
 
@@ -21,6 +25,13 @@ public class PlayerManager : MonoBehaviour
     void Start()
     {
         CurrentLives = baseLives;
+        StartCoroutine(LateStart());
+    }
+
+    IEnumerator LateStart()
+    {
+        yield return new WaitForEndOfFrame();
+        OnLifeChanged?.Invoke(CurrentLives);
     }
 
     // Update is called once per frame
@@ -34,5 +45,10 @@ public class PlayerManager : MonoBehaviour
         CurrentLives = Mathf.Clamp(CurrentLives - damage, 0, int.MaxValue);
         OnDamage?.Invoke();
         OnLifeChanged?.Invoke(CurrentLives);
+    }
+
+    public void RegisterBuilding(Building buildingToRegister)
+    {
+        buildings.Add(buildingToRegister);
     }
 }

@@ -1,9 +1,14 @@
+using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class BuildManager : MonoBehaviour
 {
-    public GameObject testBuilding;
+    public Action OnBuildingChanged;
+
+    public BuildingData testBuilding;
+    public GameObject buildingPrefab;
     public static BuildManager instance;
 
     public BuildingData currentBuilding;
@@ -15,22 +20,37 @@ public class BuildManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        currentBuilding = testBuilding;
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        InputManager.PlayerInput.actions.FindAction("Cancel").performed += OnCancelPressed;
     }
 
     private void OnDestroy()
     {
-        
+        if (InputManager.PlayerInput == null) return;
+        InputManager.PlayerInput.actions.FindAction("Cancel").performed -= OnCancelPressed;
+    }
+
+    private void OnCancelPressed(InputAction.CallbackContext context)
+    {
+        if (context.action.WasPressedThisFrame())
+        {
+            if (currentBuilding != null)
+            {
+                SetCurrentBuilding(null);
+                OnBuildingChanged?.Invoke();
+            }
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (currentBuilding == null) return;
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         mousePos.z = 0;
         buildCursor.transform.position = mousePos;
@@ -51,7 +71,10 @@ public class BuildManager : MonoBehaviour
         {
             if (canBuild)
             {
-                GameObject testObject = Instantiate(testBuilding, mousePos, Quaternion.identity);
+                Building newBuilding = Instantiate(buildingPrefab, mousePos, Quaternion.identity).GetComponent<Building>();
+                newBuilding.SetID(GUID.Generate().ToString());
+                PlayerManager.instance.RegisterBuilding(newBuilding);
+                Debug.Log("Tower " + newBuilding.id + " is registered");
             }
         }
         
@@ -64,6 +87,12 @@ public class BuildManager : MonoBehaviour
 
     public void SetCurrentBuilding(BuildingData building)
     {
+        if (building == null)
+        {
+            buildCursor.gameObject.SetActive(false);
+            currentBuilding = null;
+            return;
+        }
         currentBuilding = building;
         buildCursor.GetComponent<SpriteRenderer>().sprite = building.buildingSprite;
     }

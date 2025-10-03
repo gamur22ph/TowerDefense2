@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    [SerializeField] TextMeshProUGUI progressCount;
+    [SerializeField] TextMeshPro progressCount;
     private Vector2 currentTargetPos;
     private Vector2 direction;
     private bool reversedPathing;
@@ -19,7 +19,7 @@ public class Enemy : MonoBehaviour
     public Health Health { get; private set; }
     private bool destroyed;
 
-    private float progress;
+    public float progress { get; private set; }
 
     private void Awake()
     {
@@ -91,7 +91,7 @@ public class Enemy : MonoBehaviour
     {
         float currentPathDistance = PathManager.instance.PathsDistance[currentPathIdx - 1];
         progress = currentPathDistance - GetTargetDistance();
-        progressCount.text = (PathManager.instance.PathLength - progress / PathManager.instance.PathLength).ToString("F0");
+        progressCount.text = ((progress / PathManager.instance.PathLength) * 100).ToString("F1");
         // Change Path
         if (progress > currentPathDistance - 0.01f)
         {

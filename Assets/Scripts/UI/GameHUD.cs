@@ -4,9 +4,11 @@ using UnityEngine;
 public class GameHUD : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI livesText;
+    [SerializeField] private GameObject towerDetails;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    private void Start()
     {
         PlayerManager.instance.OnLifeChanged += Player_OnLifeChanged;
     }

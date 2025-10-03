@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[CreateAssetMenu(menuName = "Building")]
 public class BuildingData : ScriptableObject
 {
     public Sprite icon64x64;
